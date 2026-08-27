@@ -789,3 +789,209 @@ tratamiento.
   enrutamiento a `references/` funciona como se espera.
 - Nuevo, menor: si `sre-slo` vuelve a crecer, aplicar el mismo patrón antes de
   que supere las 500 líneas.
+
+---
+
+## Primera validación empírica real (no autocalificada): sre-security
+
+Usando el skill `skill-creator` (recién disponible en la sesión), se corrió el
+primer piloto de validación real contra `sre-security`, cerrando — al menos
+para este skill — el punto pendiente que se venía arrastrando desde la
+retrospectiva: nada hasta ahora había sido probado contra un agente real
+ejecutando una tarea real, con evaluación independiente.
+
+**Metodología**: 3 casos de prueba realistas, elegidos para tocar partes
+distintas del skill (el hand-off §23a, la escalera de acceso §25a, y el
+principio de exclusión determinista §33 en un contexto agéntico). Por cada
+caso se lanzaron dos subagentes independientes en paralelo — uno con acceso al
+skill completo (siguiendo su propio índice de carga bajo demanda), otro sin
+ningún skill, solo con su conocimiento general — y se calificó cada respuesta
+contra 4-5 afirmaciones objetivamente verificables por caso.
+
+**Resultado del enrutamiento**: en los 3 casos, el skill dirigió correctamente
+al archivo de `references/` correcto según la situación planteada — primera
+confirmación real (no simulada) de que el patrón núcleo+referencias funciona
+como se diseñó.
+
+**Resultado cuantitativo**: 100% (14/14) de las afirmaciones cumplidas con el
+skill, 63.3% (9/14) sin él.
+
+**Hallazgo cualitativo, más matizado que el número**: la respuesta base (sin
+skill) ya llegaba a conclusiones operativamente correctas y razonablemente
+buenas en los 3 casos — el conocimiento general del modelo sobre SRE/seguridad
+ya es sólido. Lo que el skill aportó de forma consistente no fue "evitar
+respuestas incorrectas" sino:
+- nombrar el hand-off a un rol formal específico (Security Incident Commander)
+  en vez de un genérico "escala a seguridad";
+- verificar explícitamente si el incidente en curso podría ser en sí mismo un
+  incidente de seguridad *antes* de conceder acceso a un tercero — algo que la
+  respuesta base nunca preguntó en el caso del contratista;
+- nombrar el Deterministic Exclusion Principle como argumento arquitectónico
+  explícito, en vez de solo pedir "revisión humana" en términos genéricos.
+
+**Revisión humana**: se generó un visor de resultados (`generate_review.py`,
+modo estático) y se le envió al usuario para revisión directa de las 6
+respuestas completas (no solo el resumen). El usuario confirmó verbalmente:
+"los resultados me convencen tal como está" — equivalente a un feedback vacío
+en la metodología del skill-creator (nada que corregir). No se aplicó ningún
+cambio a `sre-security` como resultado de esta ronda.
+
+### Estado del punto de validación empírica
+
+Este resultado cubre **solo `sre-security`, con 3 casos**. Sigue sin cubrirse
+el resto del set (8 skills). Queda como decisión abierta si escalar el mismo
+piloto al resto, y en qué orden.
+
+---
+
+## Escalado del piloto a los 8 skills restantes
+
+Por decisión explícita del usuario ("Escalar el mismo piloto a los otros 8
+skills"), se repitió exactamente la misma metodología del piloto de
+`sre-security` sobre el resto del set: `sre-engineering-mindset`, `sre-bash`,
+`sre-observability`, `sre-release-deployment`, `sre-incident-review`,
+`sre-documentation`, `sre-testing` y `sre-slo`. 3 casos de prueba por skill
+(24 en total), cada uno corrido dos veces (con skill / sin skill), calificado
+contra 4-5 afirmaciones objetivamente verificables por caso — 48 corridas de
+agente en total.
+
+**Nota metodológica sobre este lote**: el trabajo de graduar/agregar/generar
+los visores se retomó después de un corte de contexto de la sesión. Los datos
+de telemetría exacta (tokens/duración reales de cada subagente) se perdieron
+en ese corte y no eran recuperables; los campos `timing.json`/`timing` de
+`grading.json` de este lote son estimaciones aproximadas (palabras × 1.4 para
+tokens, × 15ms/token para duración), marcadas como tales, y **no** afectan el
+resultado de pass/fail — que es lo que importa acá. Los prompts originales de
+los 24 casos sí se recuperaron con exactitud, leyendo los transcripts de los
+subagentes ya ejecutados.
+
+### Resultado cuantitativo, por skill
+
+| Skill | Con skill | Sin skill | Delta |
+|---|---|---|---|
+| sre-engineering-mindset | 100% | 47% | +0.53 |
+| sre-bash | 100% | 60% | +0.40 |
+| sre-observability | 100% | 50% | +0.50 |
+| sre-release-deployment | 100% | 33% | +0.67 |
+| sre-incident-review | 100% | 60% | +0.40 |
+| sre-documentation | 100% | 33% | +0.67 |
+| sre-testing | 100% | 47% | +0.53 |
+| sre-slo | 100% | 40% | +0.60 |
+
+Los 8 skills alcanzaron 100% de afirmaciones cumplidas con el skill disponible
+(24/24 casos), consistente con el resultado de `sre-security`. El baseline sin
+skill varió entre 33% y 60% según el caso — nunca cero, lo cual es esperable:
+el modelo base ya tiene conocimiento general de SRE razonablemente sólido.
+
+### Resultado de enrutamiento
+
+En los 24 casos, cada skill dirigió correctamente a los archivos de
+`references/` pertinentes según la situación planteada (o, en el caso de
+`sre-slo`, leyó directamente su único `SKILL.md` sin subcarpeta de
+referencias, como se esperaba dado que ese skill quedó bajo las 500 líneas).
+Casos notables:
+- **sre-engineering-mindset, eval-0** (script de limpieza de 15 líneas, bajo
+  blast radius): el agente con skill correctamente aplicó solo el "piso" de
+  §1a sin abrir ningún archivo de `references/` — primera confirmación de que
+  el patrón sabe *no* sobre-aplicar maquinaria cuando la situación no lo
+  amerita.
+- **sre-incident-review ↔ sre-security, eval-1** (acceso de DB raro antes de
+  un incidente ya "resuelto"): el agente con skill siguió explícitamente el
+  enlace cruzado §7a, preguntando si el incidente debía derivarse a quien
+  maneja incidentes de seguridad — confirmación real (no solo de diseño) de
+  que el enlace `sre-incident-review §7a` ↔ `sre-security §23a` funciona en
+  uso.
+
+### Hallazgo cualitativo consistente entre skills
+
+El patrón encontrado en `sre-security` se repite en los 8 skills: el baseline
+sin skill suele llegar a una conclusión práctica razonable, pero el skill
+aporta consistentemente:
+- vocabulario y marcos con nombre propio del skill (ej. "Cleanup Is Not
+  Recovery", el marco FACT/GUARANTEE/LIMITATION, STPA, el principio de
+  Exclusión Determinista) que el baseline no reproduce aunque llegue a una
+  idea similar en términos genéricos;
+- una calibración explícita de blast radius/alcance antes de decidir cuánta
+  rigurosidad aplicar (§1a), ausente del baseline en casi todos los casos;
+- distinciones estructurales específicas (ej. estado no verificado vs. éxito,
+  fallo parcial como estado de primera clase, la asimetría turn-up/turn-down)
+  que el baseline mezcla o pasa por alto incluso cuando su instinto general es
+  correcto.
+
+**Revisión humana**: pendiente — se generaron y enviaron al usuario los 8
+visores estáticos (`*-eval-review.html`) para revisión directa de las 48
+respuestas completas y las métricas por caso. No se aplicó ningún cambio a
+ningún skill todavía; eso queda condicionado a la revisión del usuario, igual
+que en el piloto de `sre-security`.
+
+### Estado del punto de validación empírica
+
+Con este lote, los 9 skills del set tienen ahora al menos una validación
+empírica real (no autocalificada) contra un agente ejecutando tareas reales,
+con calificación independiente. Pendiente: revisión humana de este lote y
+decisión sobre si algún skill necesita ajustes a partir de ella.
+
+---
+
+## Revisión humana-delegada del lote de 8 skills, y 4 ajustes aplicados
+
+El usuario delegó la revisión cualitativa/cuantitativa del lote anterior (en
+vez de revisar los 8 visores él mismo). Se hizo una revisión independiente y
+escéptica: se leyeron las 48 respuestas completas, los `SKILL.md` y
+`references/*.md` de los 8 skills, y se re-chequeó a mano cada veredicto de
+`grading.json` contra el texto real (no se repitieron los números sin
+verificarlos). Ningún veredicto de calificación resultó inválido al
+inspeccionarlo.
+
+**Resultado de la revisión**: 6 de los 8 skills no necesitaban cambios
+(`sre-engineering-mindset`, `sre-observability`, `sre-incident-review`,
+`sre-testing`, y — salvo detalles menores — `sre-bash` y
+`sre-release-deployment`). Se encontraron 4 puntos concretos, aplicados todos
+en esta ronda:
+
+1. **`sre-documentation` (defecto real de formato).** La sección "Purpose" del
+   `SKILL.md` tenía una lista ("It influences: ...") partida a la mitad por un
+   párrafo de calibración insertado, dejando cuatro ítems huérfanos sin
+   conexión de vuelta a la lista. Se unieron los cuatro ítems de nuevo a la
+   lista original, antes del párrafo de calibración.
+
+2. **`sre-slo` (dos huecos de contenido genuinos).** En dos de los tres casos
+   evaluados, el baseline sin skill razonó puntos válidos que el skill no
+   cubría: (a) que un % de presupuesto consumido es ininterpretable sin saber
+   qué fracción de la ventana ya transcurrió (55% al día 5 vs. al día 25
+   implican burn rates completamente distintos) — se agregó esta distinción
+   explícita a continuación del ejemplo aritmético de §3; (b) que la
+   transición de "el agente recomienda" a "el agente puede disparar" necesita
+   un mecanismo concreto de confianza escalonada, no solo la separación
+   determinista/probabilística que el skill ya explicaba — se agregó a §12 un
+   patrón de tres etapas (solo-registro → recomienda-a-humano →
+   dispara-con-override).
+
+3. **`sre-release-deployment` (gap de índice).** El resumen de
+   `references/agentic-and-systemic.md` en el índice de carga-bajo-demanda no
+   mencionaba que ese archivo cubre riesgo de cadena de suministro (§52:
+   dependencias, sistemas de build o CI comprometidos) — un agente buscando
+   ese tema no tenía pista textual para abrir el archivo correcto. Se agregó
+   la mención al resumen del índice.
+
+4. **`sre-bash` (duplicación de contenido).** `references/contracts-and-recovery.md`
+   repetía textualmente la sección §1 ("Bash Is Not the System") que ya está
+   en el núcleo siempre cargado del `SKILL.md`, más una inconsistencia de
+   rótulo ("sections 1-18a" en el propio archivo vs. "§2–§18a" en el índice
+   que lo referencia). Se recortó la duplicación a un puntero de una línea de
+   vuelta al §1 del núcleo, y se corrigió el rótulo del archivo a "§2–§18a".
+
+Los 4 archivos modificados (`sre-documentation/SKILL.md`, `sre-slo/SKILL.md`,
+`sre-release-deployment/SKILL.md`,
+`sre-bash/references/contracts-and-recovery.md`) fueron verificados con diff
+contra la copia original del dispositivo antes de escribir — el único cambio
+en cada uno es exactamente el descrito arriba, sin deriva accidental — y ya
+están confirmados escritos en el dispositivo.
+
+### Estado
+
+Con estos 4 ajustes, el set de 9 skills queda: validado empíricamente en los 9
+(al menos un piloto real, no autocalificado, por skill), con las dos
+inconsistencias de la auditoría original cerradas, y con los 4 puntos que
+salieron de esta revisión de segunda ronda también cerrados. No quedan
+recomendaciones de cambio pendientes de esta ronda de validación.

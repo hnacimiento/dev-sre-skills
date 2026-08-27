@@ -145,11 +145,12 @@ only when the calibration says they matter.
   agent outputs are not evidence, deterministic guarantees, agent threat
   model, agent tool boundaries, STPA / system-level thinking, safety
   invariants, failure injection, `kill -9` and process death, generated
-  recovery artifacts, release state surviving process loss, and rollback
-  artifacts needing to be tested. Open this whenever an AI agent
-  triggers or assists the release, or the blast radius is high enough
-  that component correctness cannot be trusted to imply system-level
-  safety.
+  recovery artifacts, release state surviving process loss, rollback
+  artifacts needing to be tested, and release-path supply-chain risk
+  (compromised dependencies, build systems, or CI). Open this whenever an
+  AI agent triggers or assists the release, or the blast radius is high
+  enough that component correctness cannot be trusted to imply
+  system-level safety.
 - **`references/documentation-postmortems-and-review.md`** (§53–§64) —
   documentation as an operational interface, release runbooks, incident
   interaction, the postmortem feedback loop, **the Postmortem Nutrition

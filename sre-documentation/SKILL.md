@@ -18,6 +18,10 @@ It influences:
 - what engineers believe the system guarantees
 - how failures are diagnosed
 - how recovery is performed
+- how changes are deployed
+- how future maintainers modify the system
+- how automation is trusted
+- how security boundaries are understood
 
 Before applying any of the structure below, size the documentation effort
 to the same signals used to size engineering effort in
@@ -35,10 +39,6 @@ goal of documentation being read and trusted. As the same signals move up
 correspondingly more of the sections below. State briefly which level you
 are applying and why, the same way sre-engineering-mindset asks for the
 calibration to be stated rather than silently assumed.
-- how changes are deployed
-- how future maintainers modify the system
-- how automation is trusted
-- how security boundaries are understood
 
 A false documentation claim can become an operational failure.
 

@@ -1,39 +1,11 @@
-# sre-bash — Reference: Contracts, Failure, and Recovery (sections 1-18a)
+# sre-bash — Reference: Contracts, Failure, and Recovery (§2–§18a)
 
 This file is loaded on demand from `sre-bash/SKILL.md` §1a, whenever the script performs any consequential mutation at all. It is
 not a standalone skill — it assumes sre-engineering-mindset §1a has
-already calibrated the situation and sre-bash's own core has already
-been read.
-
----
-
-# 1. Bash Is Not the System
-
-A Bash script is usually a controller sitting between multiple systems:
-
-    Bash
-      ↓
-    filesystem
-      ↓
-    operating system
-      ↓
-    external commands
-      ↓
-    containers / APIs / services
-      ↓
-    persistent production state
-
-Bash itself may execute correctly while the resulting system state is wrong.
-
-Therefore:
-
-    shell correctness != operational correctness
-
-and:
-
-    exit 0 != desired state verified.
-
-Always reason about the external state the script is trying to create.
+already calibrated the situation and sre-bash's own core (including its
+§1 "Bash Is Not the System" — shell correctness != operational
+correctness, exit 0 != desired state verified) has already been read.
+Everything below builds on that §1 without repeating it.
 
 ---
 

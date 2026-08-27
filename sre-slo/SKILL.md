@@ -132,6 +132,17 @@ window, not merely "running low"). This is a bare arithmetic check that
 should be verified by direct computation against real counts, not
 estimated or asserted by an agent summarizing a dashboard (§12).
 
+**A bare percentage consumed is uninterpretable without the elapsed
+fraction of the window.** 55% of a 30-day budget consumed means something
+completely different on day 5 of that window than on day 25: on day 5 it
+implies a burn rate roughly six times what the objective can sustain and
+demands an immediate response; on day 25, with only a few days left, it
+implies a burn rate close to sustainable and may not warrant any action
+at all. Always divide the question "how much budget is gone" by "how much
+of the window has elapsed" before deciding whether a consumption number is
+alarming — the percentage alone, without that ratio, is not a decision
+input.
+
 ---
 
 ## 4. Multi-Window, Multi-Burn-Rate Alerting
@@ -372,6 +383,26 @@ function.
   deterministic part itself or cite a computed source, state its
   confidence explicitly about the judgment part, and stop short of
   treating its own recommendation as the granted exception.
+
+**Getting from "recommends" to "triggers" safely is itself a staged
+process, not a one-time authorization decision.** Naming the
+deterministic/probabilistic split above tells an agent what it should
+never be trusted to decide unsupervised; it does not by itself tell an
+organization how to build enough confidence to grant an agent real
+trigger authority over a consequential action like a deploy freeze. A
+reasonable default progression: start the agent in **log-only** mode,
+where it computes and records what it would have recommended without
+affecting anything; move to **recommend-to-human**, where its
+recommendation is surfaced to whoever holds freeze authority but every
+freeze still requires an explicit human trigger; and only after its
+recommendations have been checked against enough real human decisions to
+establish agreement, move to **trigger-with-override**, where the agent
+can initiate the deterministic action itself but a human can revert it
+immediately and without friction. Skipping straight to full autonomy
+because the underlying arithmetic is deterministic conflates "the
+calculation is trustworthy" with "the judgment about when and how hard to
+act on it is trustworthy" — exactly the distinction this section exists
+to keep separate.
 
 ---
 
