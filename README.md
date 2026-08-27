@@ -7,25 +7,56 @@ release/deployment, incident review, documentation, testing, service level
 objectives, and an overarching engineering mindset that ties the rest
 together.
 
-## ⚠️ Status: not empirically validated
+## ⚠️ Status: partially validated, not exhaustively tested
 
-**These skills have not been tested against a real, live agent session
-performing a real task.** Everything validated so far was a self-graded
-adversarial battery: the same model that wrote a skill also wrote the test
-prompts, simulated how an agent would respond to them, and graded that
-simulated response against its own criteria. That is useful for catching
-internal contradictions and missing cases, but it is not the same as
-empirical evidence that the skills behave correctly in actual use — whether
-an agent picks the right skill, actually follows the load-on-demand
-references at the right moment, or reasons correctly under a real,
-adversarial, or ambiguous task.
+**These skills have been tested against real, live agent sessions performing
+real tasks — but only lightly, not exhaustively.** Each of the 9 skills has
+been run through 3 realistic test cases, each case executed once with the
+skill available and once without it (a baseline), then graded against
+objective, pre-defined assertions and independently reviewed. In every one
+of these 24 cases, the skill-available run outperformed the baseline, and
+the routing to the right `references/*.md` file was confirmed correct —
+including one case where the correct behavior was to open zero reference
+files. A second, skeptical read of all 48 responses against the actual
+skill content found four concrete issues, all fixed.
 
-Treat everything in this repository as a well-reasoned draft, not a proven
-system. `BATERIA_ADVERSARIAL_RESULTADOS.md` and `REVISION_CRITICA_SKILLS_SRE.md`
-document the full history of what was reviewed, what was found, and what
-remains open — including this caveat.
+That said: 3 cases per skill is a small sample, not exhaustive coverage. It
+does not mean every section of every skill has been exercised, or that the
+skills behave correctly on every realistic task, edge case, or adversarial
+input. Earlier validation rounds were self-graded (the same model that
+wrote a skill also simulated and graded the response) — useful for catching
+internal contradictions, but not the same as the empirical rounds described
+above. Treat this repository as tested-but-not-hardened, not as a proven
+system with exhaustive coverage. `BATERIA_ADVERSARIAL_RESULTADOS.md` and
+`REVISION_CRITICA_SKILLS_SRE.md` document the full history of what was
+reviewed, what was found, and what remains open — including this caveat.
+
+## Install as a plugin
+
+This repository is packaged as an installable Claude Code plugin (and its
+own marketplace catalog). Instead of copying the 9 skill folders by hand
+into each project's `.claude/skills/`, install once:
+
+```
+/plugin marketplace add hnacimiento/dev-sre-skills
+/plugin install dev-sre-skills@dev-sre-skills
+```
+
+When Claude Code asks for an install scope, choose **User scope** to make
+the 9 skills available in every project on your machine automatically, or
+**Project**/**Local scope** to limit it to one repository. See
+`docs/COMO_USAR_EL_PLUGIN.md` for a beginner-friendly walkthrough (in
+Spanish) of installation, scope choice, and day-to-day use.
+
+Installing the plugin does not change what the skills do or how they
+reason — same `SKILL.md` files, same `references/`. It only changes how
+they reach a project.
 
 ## What's in here
+
+Each skill lives under `skills/<name>/` (the layout the plugin format
+requires). All 9 are listed here by name only — see the plugin install
+section above for how to get them into a project.
 
 | Skill | Purpose |
 |---|---|

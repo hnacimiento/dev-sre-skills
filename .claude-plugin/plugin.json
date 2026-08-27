@@ -1,0 +1,11 @@
+{
+  "name": "dev-sre-skills",
+  "description": "9 skills de razonamiento SRE (Site Reliability Engineering) para automatizacion, bash, seguridad, observabilidad, despliegues, revision de incidentes, documentacion, testing y SLOs.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Hernan"
+  },
+  "homepage": "https://github.com/hnacimiento/dev-sre-skills",
+  "repository": "https://github.com/hnacimiento/dev-sre-skills",
+  "license": "MIT"
+}
