@@ -674,3 +674,118 @@ práctica — no hay forma de validarlo empíricamente desde esta sesión.
   contra una sesión real de Claude con una tarea real) sigue sin resolverse.
 - Git para todo el proyecto, apuntando al GitHub del usuario, sigue como el
   último paso explícitamente diferido.
+
+---
+
+## Publicación en GitHub
+
+Repositorio: https://github.com/hnacimiento/dev-sre-skills (nombre elegido por
+el usuario: `dev-sre-skills`). Licencia: MIT, sin cambios en el titular del
+copyright. El usuario confirmó que ya hizo `git push` al repo remoto.
+
+Se prepararon localmente antes del push: `README.md` (con el disclaimer de
+"no validado empíricamente" visible al inicio, tabla de los 9 skills,
+explicación del patrón núcleo+referencias, y los tres pilares del manifiesto),
+`.gitignore` (mínimo: cruft de SO/editor), y `LICENSE` (MIT).
+
+Los archivos `Prompt de prueba de skill.txt` que existían en algunos skills
+fueron borrados por el usuario intencionalmente antes de la publicación
+(confirmado explícitamente) — no forman parte del repo publicado.
+
+Con esto se cierra el punto pendiente "Git para todo el proyecto, apuntando
+al GitHub del usuario", que había quedado explícitamente diferido al final de
+todo este esfuerzo.
+
+### Lo que sigue sin resolver, fuera del alcance de este trabajo
+
+- **Validación empírica real**: nada de lo hecho fue probado contra un agente
+  real ejecutando una tarea real — todas las baterías adversariales fueron
+  autocalificadas por el mismo modelo que escribió los skills.
+- **Confirmar en uso real** que el frontmatter agregado a los 4 skills que no
+  lo tenían (`sre-security`, `sre-release-deployment`, `sre-incident-review`,
+  `sre-testing`) efectivamente mejora su detección/carga — no verificable
+  desde esta sesión.
+
+---
+
+## Verificación contra la documentación oficial vigente y corrección de un llamado propio
+
+El usuario compartió un documento de recursos sobre Claude Code Skills y pidió
+navegar las URLs oficiales para ver si algo servía para mejorar el proyecto.
+Se consultaron `code.claude.com/docs/en/skills` y
+`platform.claude.com/docs/en/agents-and-tools/agent-skills/overview`
+directamente (no de memoria), con los siguientes hallazgos concretos:
+
+**Frontmatter: `name` no es obligatorio.** La documentación oficial dice
+"All fields are optional. Only `description` is recommended". `name` sin
+especificar cae al nombre del directorio. Esto corrige una afirmación mía
+anterior: catalogar los 4 skills sin `name:` como un "defecto" fue impreciso
+— probablemente no impedía su descubrimiento (el directorio ya se llamaba
+igual que el `name` que le agregué). Quedan con `name:` explícito de todos
+modos, lo cual es inofensivo y consistente con el resto del set, pero el
+hallazgo debía corregirse para no sobre-reportar severidad.
+
+**Límite oficial de tamaño: "Keep SKILL.md under 500 lines."** Este es el
+hallazgo más importante y accionable de la revisión. No es una recomendación
+de tokens aproximada — es una directiva explícita de la documentación oficial
+de Claude Code. Se verificaron los 9 núcleos contra este límite:
+
+| Skill | Líneas del núcleo | ¿Cumple? |
+|---|---|---|
+| sre-engineering-mindset | 304 | Sí |
+| sre-bash | 143 | Sí |
+| sre-security | 114 | Sí |
+| sre-observability | 152 | Sí |
+| sre-release-deployment | 166 | Sí |
+| sre-incident-review | 159 | Sí |
+| sre-documentation | 254 | Sí |
+| sre-testing (antes de esta corrección) | 834 | **No — 67% por encima del límite** |
+| sre-slo | 480 | Sí (al límite, sin margen) |
+
+**Esto invalida mi decisión anterior de "proporcionalidad" de dejar
+`sre-testing` como archivo único.** Ese razonamiento se apoyaba en el
+principio interno del propio set (no aplicar más maquinaria de la que el
+blast radius justifica), pero la guía oficial de la plataforma es un límite
+distinto y no negociable sobre el archivo que se carga siempre — independiente
+de cuánto contenido "merezca" tener. Se corrigió: `sre-testing` se dividió con
+el mismo patrón núcleo+`references/` ya aplicado a los otros 7 skills.
+
+### sre-testing (834 → 88 líneas de núcleo)
+
+Cuatro archivos de referencia (menos que los 5 típicos, proporcional al
+tamaño real del contenido): `contract-and-state-testing.md` (§2-7, 167
+líneas), `execution-and-recovery-testing.md` (§8-14, 199 líneas),
+`security-observability-and-boundary-testing.md` (§15-20a, 181 líneas),
+`operator-agentic-and-final-review.md` (§21-30, 240 líneas — incluye **§23a
+testing de interacciones, no solo de componentes**). Verificado por grep: las
+30 secciones (+1a, 20a, 23a) aparecen exactamente una vez.
+
+`sre-slo` (480 líneas) queda tal cual — cumple el límite oficial, aunque sin
+margen. Si en el futuro crece aunque sea un poco, va a necesitar el mismo
+tratamiento.
+
+### Otros hallazgos de la revisión de documentación, sin acción requerida
+
+- Límite de `description` (1,536 caracteres combinados con `when_to_use` en
+  el listado): los 9 skills están muy por debajo (483-820 caracteres). Sin
+  problema.
+- Restricciones del campo `name` (máx. 64 caracteres, minúsculas/números/
+  guiones, sin "anthropic"/"claude"): los 9 nombres (`sre-*`) cumplen sin
+  cambios.
+- La convención de nombrar la carpeta de material adicional `references/` es
+  válida — la documentación no exige un nombre fijo (usa `reference.md`,
+  `examples.md`, `scripts/` como ejemplos), solo que `SKILL.md` enlace a lo
+  que corresponda.
+- El estándar Agent Skills (agentskills.io) es efectivamente portable entre
+  Claude Code, claude.ai y la API, confirmando que este set no queda atado a
+  un solo producto — aunque para subir a claude.ai/API el frontmatter se
+  restringe a seis campos (`name`, `description`, `license`, `compatibility`,
+  `metadata`, `allowed-tools`); ninguno de los 9 skills usa campos fuera de
+  ese conjunto, así que no hay migración pendiente ahí tampoco.
+
+### Pendientes que sobreviven a esta revisión
+
+- Los mismos de siempre: validación empírica real, y confirmar en uso que el
+  enrutamiento a `references/` funciona como se espera.
+- Nuevo, menor: si `sre-slo` vuelve a crecer, aplicar el mismo patrón antes de
+  que supere las 500 líneas.
